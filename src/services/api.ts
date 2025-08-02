@@ -1,4 +1,7 @@
 import axios from 'axios'
+import { LoginResponse, Profile } from '../types/auth'
+import { Category, Product, ProductFilters, ProductForCreate, ProductForUpdate } from '../types/product'
+import { UploadedFile } from '../types/files'
 
 const API_BASE = 'https://api.escuelajs.co/api/v1'
 
@@ -19,12 +22,12 @@ api.interceptors.request.use((config) => {
 // Auth API
 export const authAPI = {
   login: async (email: string, password: string) => {
-    const response = await api.post('/auth/login', { email, password })
+    const response = await api.post<LoginResponse>('/auth/login', { email, password })
     return response.data
   },
   
   getProfile: async () => {
-    const response = await api.get('/auth/profile')
+    const response = await api.get<Profile>('/auth/profile')
     return response.data
   }
 }
@@ -32,31 +35,31 @@ export const authAPI = {
 // Products API
 export const productsAPI = {
   getProducts: async (offset = 0, limit = 5) => {
-    const response = await api.get(`/products?offset=${offset}&limit=${limit}`)
+    const response = await api.get<Product[]>(`/products?offset=${offset}&limit=${limit}`)
     return response.data
   },
   
-  getProduct: async (id: string) => {
-    const response = await api.get(`/products/${id}`)
+  getProduct: async (id: number) => {
+    const response = await api.get<Product>(`/products/${id}`)
     return response.data
   },
   
-  createProduct: async (productData: any) => {
-    const response = await api.post('/products', productData)
+  createProduct: async (productData: ProductForCreate) => {
+    const response = await api.post<Product>('/products', productData)
     return response.data
   },
   
-  updateProduct: async (id: string, productData: any) => {
-    const response = await api.put(`/products/${id}`, productData)
+  updateProduct: async (id: number, productData: ProductForUpdate) => {
+    const response = await api.put<Product>(`/products/${id}`, productData)
     return response.data
   },
   
-  deleteProduct: async (id: string) => {
-    const response = await api.delete(`/products/${id}`)
+  deleteProduct: async (id: number) => {
+    const response = await api.delete<boolean>(`/products/${id}`)
     return response.data
   },
   
-  filterProducts: async (filters: any) => {
+  filterProducts: async (filters: ProductFilters) => {
     // let query = '/products?'
     const params = new URLSearchParams()
     
@@ -67,7 +70,7 @@ export const productsAPI = {
     if (filters.offset) params.append('offset', filters.offset.toString())
     if (filters.limit) params.append('limit', filters.limit.toString())
     
-    const response = await api.get(`/products?${params.toString()}`)
+    const response = await api.get<Product[]>(`/products?${params.toString()}`)
     return response.data
   }
 }
@@ -75,7 +78,7 @@ export const productsAPI = {
 // Categories API
 export const categoriesAPI = {
   getCategories: async () => {
-    const response = await api.get('/categories')
+    const response = await api.get<Category[]>('/categories')
     return response.data
   }
 }
@@ -86,7 +89,7 @@ export const filesAPI = {
     const formData = new FormData()
     formData.append('file', file)
     
-    const response = await api.post('/files/upload', formData, {
+    const response = await api.post<UploadedFile>('/files/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

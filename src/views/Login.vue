@@ -57,12 +57,23 @@ import { authAPI } from '../services/api'
 
 const router = useRouter()
 
-const form = reactive({
+interface LoginForm {
+  email: string;
+  password: string;
+}
+
+interface LoginErrors {
+  email: string;
+  password: string;
+  general: string;
+}
+
+const form = reactive<LoginForm>({
   email: 'john@mail.com',
   password: 'changeme'
 })
 
-const errors = reactive({
+const errors = reactive<LoginErrors>({
   email: '',
   password: '',
   general: ''

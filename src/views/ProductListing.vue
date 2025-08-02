@@ -126,24 +126,25 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Layout from '../components/Layout.vue'
 import { productsAPI, categoriesAPI } from '../services/api'
+import { Category, Product, ProductFilters } from '../types/product'
 
 const router = useRouter()
 
-const products = ref([])
-const categories = ref([])
+const products = ref<Product[]>([])
+const categories = ref<Category[]>([])
 const loading = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 8
 
-const filters = reactive({
+const filters = reactive<ProductFilters>({
   title: '',
-  price_min: null,
-  price_max: null,
-  categoryId: ''
+  price_min: undefined,
+  price_max: undefined,
+  categoryId: undefined
 })
 
 const showDeleteModal = ref(false)
-const productToDelete = ref(null)
+const productToDelete = ref(<number|null>(null))
 
 const loadProducts = async () => {
   loading.value = true
@@ -201,10 +202,10 @@ const applyFilters = () => {
 }
 
 const clearFilters = () => {
-  filters.title = ''
-  filters.price_min = null
-  filters.price_max = null
-  filters.categoryId = ''
+  filters.title = undefined
+  filters.price_min = undefined
+  filters.price_max = undefined
+  filters.categoryId = undefined
   currentPage.value = 1
   loadProducts()
 }
@@ -223,11 +224,11 @@ const nextPage = () => {
   }
 }
 
-const editProduct = (id: string) => {
+const editProduct = (id: number) => {
   router.push(`/products/edit/${id}`)
 }
 
-const deleteProduct = (id: string) => {
+const deleteProduct = (id: number) => {
   productToDelete.value = id
   showDeleteModal.value = true
 }

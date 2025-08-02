@@ -132,28 +132,37 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Layout from '../components/Layout.vue'
 import { productsAPI, categoriesAPI, filesAPI } from '../services/api'
+import { Category, ProductForCreate, ProductForUpdate } from '../types/product'
 
 const router = useRouter()
 const route = useRoute()
 
 const isEdit = computed(() => !!route.params.id)
 
-const form = reactive({
+const form = reactive<ProductForCreate|ProductForUpdate>({
   title: '',
   price: 0,
   description: '',
-  categoryId: '',
+  categoryId: undefined,
   images: []
 })
 
-const errors = reactive({
+// Define a type for errors
+interface FormErrors {
+  title: string;
+  price: string;
+  description: string;
+  categoryId: string;
+}
+
+const errors = reactive<FormErrors>({
   title: '',
   price: '',
   description: '',
   categoryId: ''
 })
 
-const categories = ref([])
+const categories = ref<Category[]>([])
 const loading = ref(false)
 const uploadingImage = ref(false)
 const showSaveModal = ref(false)
@@ -168,7 +177,7 @@ const loadCategories = async () => {
   }
 }
 
-const loadProduct = async (id: string) => {
+const loadProduct = async (id: number) => {
   try {
     const product = await productsAPI.getProduct(id)
     form.title = product.title
@@ -193,9 +202,6 @@ const handleFileUpload = async (event: Event) => {
   try {
     const response = await filesAPI.uploadFile(file)
     form.images = [response.location]
-    console.log(response)
-    console.log(response.location)
-    console.log(form.image)
   } catch (error) {
     console.error('Failed to upload image:', error)
     alert('Failed to upload image. Please try again.')
@@ -221,7 +227,7 @@ const validateForm = () => {
     errors[key as keyof typeof errors] = ''
   })
   
-  if (!form.title.trim()) {
+  if (!form.title?.trim()) {
     errors.title = 'Title is required'
     isValid = false
   }
@@ -231,12 +237,12 @@ const validateForm = () => {
     isValid = false
   }
   
-  if (!form.description.trim()) {
+  if (!form.description?.trim()) {
     errors.description = 'Description is required'
     isValid = false
   }
   
-  if (!form.categoryId) {
+  if (form.categoryId === undefined) {
     errors.categoryId = 'Category is required'
     isValid = false
   }
@@ -263,13 +269,14 @@ const confirmSave = async () => {
       title: form.title,
       price: form.price,
       description: form.description,
-      categoryId: parseInt(form.categoryId as string),
+      categoryId: form.categoryId,
       images: form.images.length > 0 ? form.images : ['https://via.placeholder.com/300']
-    }
-    console.log(productData)
+    } as ProductForCreate | ProductForUpdate
     
     if (isEdit.value) {
-      await productsAPI.updateProduct(route.params.id as string, productData)
+      const productId = Number(route.params.id)
+      if (isNaN(productId)) throw new Error('Invalid productData')
+      await productsAPI.updateProduct(productId, productData)
     } else {
       await productsAPI.createProduct(productData)
     }
@@ -303,8 +310,8 @@ onMounted(() => {
   loadCategories()
   
   if (isEdit.value) {
-    loadProduct(route.params.id as string)
-    console.log(loadProduct)
+    const id = Number(route.params.id)
+    loadProduct(id)
   }
 })
 </script>
