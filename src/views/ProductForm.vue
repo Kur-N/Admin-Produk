@@ -274,7 +274,7 @@ const confirmSave = async () => {
       await productsAPI.createProduct(productData)
     }
     
-    //router.push('/products')
+    router.push('/products')
   } catch (error) {
     console.error('Failed to save product:', error)
     alert('Failed to save product. Please try again.')
