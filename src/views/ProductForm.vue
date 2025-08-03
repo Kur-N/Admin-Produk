@@ -76,7 +76,7 @@
               @change="handleFileUpload"
               class="file-input"
             />
-            <button type="button" @click="$refs.fileInput.click()" class="btn btn-secondary">
+            <button type="button" @click="fileInput?.click()" class="btn btn-secondary">
               📁 Choose Image
             </button>
             <span v-if="uploadingImage" class="upload-status">Uploading...</span>
@@ -138,6 +138,8 @@ const router = useRouter()
 const route = useRoute()
 
 const isEdit = computed(() => !!route.params.id)
+
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const form = reactive<ProductForCreate|ProductForUpdate>({
   title: '',
@@ -265,20 +267,26 @@ const confirmSave = async () => {
   closeSaveModal()
   
   try {
-    const productData = {
-      title: form.title,
-      price: form.price,
-      description: form.description,
-      categoryId: form.categoryId,
-      images: form.images.length > 0 ? form.images : ['https://via.placeholder.com/300']
-    } as ProductForCreate | ProductForUpdate
-    
     if (isEdit.value) {
       const productId = Number(route.params.id)
       if (isNaN(productId)) throw new Error('Invalid productData')
-      await productsAPI.updateProduct(productId, productData)
+      const productUpdateData: ProductForUpdate= {
+        title: form.title,
+        price: form.price,
+        description: form.description,
+        categoryId: form.categoryId,
+        images: form.images 
+      }
+      await productsAPI.updateProduct(productId, productUpdateData)
     } else {
-      await productsAPI.createProduct(productData)
+      const productCreateData: ProductForCreate= {
+        title: form.title!,
+        price: form.price!,
+        description: form.description!,
+        categoryId: form.categoryId as number, // Ensure categoryId is a number
+        images: form.images!.length > 0 ? form.images! : ['https://via.placeholder.com/300']
+      };
+      await productsAPI.createProduct(productCreateData)
     }
     
     router.push('/products')
